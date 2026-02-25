@@ -3,7 +3,7 @@
   <h1>AutoReview AI</h1>
   <p><strong>AI-powered code reviews for GitHub pull requests</strong></p>
   <p>
-    <a href="https://autoreview-ai-saas.vercel.app">Live Demo</a> •
+    <a href="https://auto-review-ai-saas.vercel.app">Live Demo</a> •
     <a href="./api/README.md">API Docs</a> •
     <a href="./client/README.md">Client Docs</a>
   </p>
