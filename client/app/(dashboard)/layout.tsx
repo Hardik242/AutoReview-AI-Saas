@@ -98,7 +98,7 @@ export default function DashboardLayout({
 		} catch {
 			// ignore
 		}
-		window.location.href = "/login";
+		window.location.href = "/";
 	};
 
 	if (isLoading) {
