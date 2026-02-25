@@ -87,6 +87,8 @@ export default function DashboardLayout({
 	useEffect(() => {
 		if (error instanceof AuthError) {
 			window.location.href = "/login";
+		} else if (error instanceof Error) {
+			window.location.href = "/";
 		}
 	}, [error]);
 
