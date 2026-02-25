@@ -96,3 +96,26 @@ proWorker.on("failed", (job, err) => {
 
 console.log("[Worker] Free worker listening (concurrency: 2, drainDelay: 5s)");
 console.log("[Worker] Pro worker listening (concurrency: 5, drainDelay: 5s)");
+
+// Minimal health endpoint so Render knows the worker is alive
+import http from "http";
+const WORKER_PORT = process.env.WORKER_PORT || 8001;
+http
+	.createServer((req, res) => {
+		if (req.url === "/health") {
+			res.writeHead(200, {"Content-Type": "application/json"});
+			res.end(
+				JSON.stringify({
+					status: "ok",
+					service: "worker",
+					uptime: Math.floor(process.uptime()),
+				}),
+			);
+		} else {
+			res.writeHead(404);
+			res.end();
+		}
+	})
+	.listen(WORKER_PORT, () => {
+		console.log(`[Worker] Health endpoint on port ${WORKER_PORT}`);
+	});
