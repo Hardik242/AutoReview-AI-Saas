@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// In production, API requests go through Vercel rewrites (same-origin, no cross-site cookie issues).
+// In local dev, VITE_API_URL points to http://localhost:8000.
+const API_URL = import.meta.env.VITE_API_URL || "";
 const BASE = `${API_URL}/api/v1`;
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {

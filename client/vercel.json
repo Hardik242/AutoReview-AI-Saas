@@ -1,0 +1,8 @@
+{
+	"rewrites": [
+		{
+			"source": "/api/:path*",
+			"destination": "https://autoreview-ai-saas.onrender.com/api/:path*"
+		}
+	]
+}
