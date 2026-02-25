@@ -1,5 +1,9 @@
+"use client";
+
+import {useState, useEffect, Suspense} from "react";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {api} from "@/lib/api";
+import {useRouter, useSearchParams} from "next/navigation";
 import {
 	Card,
 	CardContent,
@@ -26,15 +30,21 @@ import {
 	LogOut,
 	Sparkles,
 } from "lucide-react";
-import {useState} from "react";
 import {toast} from "sonner";
-import {useSearchParams, useNavigate} from "react-router-dom";
 
-export default function SettingsPage() {
+function SettingsContent() {
+	const searchParams = useSearchParams();
+	const router = useRouter();
+	const defaultTab = searchParams.get("tab") || "profile";
+
+	const [activeTab, setActiveTab] = useState(defaultTab);
+	const [stripeLoading, setStripeLoading] = useState(false);
 	const queryClient = useQueryClient();
-	const navigate = useNavigate();
-	const [searchParams, setSearchParams] = useSearchParams();
-	const activeTab = searchParams.get("tab") || "profile";
+
+	useEffect(() => {
+		const tab = searchParams.get("tab") || "profile";
+		setActiveTab(tab);
+	}, [searchParams]);
 
 	const {data: user} = useQuery({
 		queryKey: ["user"],
@@ -47,8 +57,9 @@ export default function SettingsPage() {
 
 	const [newRule, setNewRule] = useState("");
 
-	const setTab = (tab: string) => {
-		setSearchParams({tab});
+	const handleTabChange = (val: string) => {
+		setActiveTab(val);
+		router.replace(`/settings?tab=${val}`, {scroll: false});
 	};
 
 	const createRuleMutation = useMutation({
@@ -77,20 +88,26 @@ export default function SettingsPage() {
 	});
 
 	const handleUpgrade = async () => {
+		setStripeLoading(true);
 		try {
 			const {url} = await api.stripe.checkout();
 			window.location.href = url;
 		} catch (err) {
 			toast.error((err as Error).message);
+		} finally {
+			setStripeLoading(false);
 		}
 	};
 
 	const handlePortal = async () => {
+		setStripeLoading(true);
 		try {
 			const {url} = await api.stripe.portal();
 			window.location.href = url;
 		} catch (err) {
 			toast.error((err as Error).message);
+		} finally {
+			setStripeLoading(false);
 		}
 	};
 
@@ -100,7 +117,7 @@ export default function SettingsPage() {
 		} catch {
 			/* */
 		}
-		navigate("/login");
+		router.push("/login");
 	};
 
 	const ProLock = ({children}: {children: React.ReactNode}) => {
@@ -126,7 +143,7 @@ export default function SettingsPage() {
 				</p>
 			</div>
 
-			<Tabs value={activeTab} onValueChange={setTab}>
+			<Tabs value={activeTab} onValueChange={handleTabChange}>
 				<TabsList className="grid w-full grid-cols-4">
 					<TabsTrigger value="profile" className="gap-1.5">
 						<User className="w-4 h-4" />{" "}
@@ -235,12 +252,21 @@ export default function SettingsPage() {
 									</p>
 								</div>
 								{user?.plan === "pro" ? (
-									<Button variant="outline" onClick={handlePortal}>
+									<Button
+										variant="outline"
+										onClick={handlePortal}
+										disabled={stripeLoading}>
+										{stripeLoading && (
+											<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+										)}
 										<ExternalLink className="w-4 h-4 mr-2" /> Manage
 										Subscription
 									</Button>
 								) : (
-									<Button onClick={handleUpgrade}>
+									<Button onClick={handleUpgrade} disabled={stripeLoading}>
+										{stripeLoading && (
+											<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+										)}
 										<Sparkles className="w-4 h-4 mr-2" /> Upgrade to Pro —
 										$10/mo
 									</Button>
@@ -351,5 +377,13 @@ export default function SettingsPage() {
 				</TabsContent>
 			</Tabs>
 		</div>
+	);
+}
+
+export default function Settings() {
+	return (
+		<Suspense fallback={<div className="p-8">Loading settings...</div>}>
+			<SettingsContent />
+		</Suspense>
 	);
 }

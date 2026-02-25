@@ -1,10 +1,13 @@
+"use client";
+
 import {motion} from "framer-motion";
 import {ArrowRight, Play} from "lucide-react";
-import {Link} from "react-router-dom";
+import {useRouter} from "next/navigation";
 import {Button} from "@/components/ui/button";
 import {CodeDiffMockup} from "./CodeDiffMockup";
 
 export function HeroSection() {
+	const router = useRouter();
 	return (
 		<section
 			id="hero"
@@ -35,12 +38,10 @@ export function HeroSection() {
 
 						<div className="flex flex-wrap gap-4">
 							<Button
-								asChild
 								size="lg"
-								className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-primary-foreground px-8 btn-press">
-								<Link to="/login">
-									Get Started Free <ArrowRight className="ml-2 w-4 h-4" />
-								</Link>
+								className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-primary-foreground px-8 btn-press"
+								onClick={() => router.push("/login")}>
+								Get Started Free <ArrowRight className="ml-2 w-4 h-4" />
 							</Button>
 							<Button
 								asChild

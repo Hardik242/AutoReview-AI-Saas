@@ -1,4 +1,8 @@
-import {Link, Outlet, useLocation, useNavigate} from "react-router-dom";
+"use client";
+
+import {useState} from "react";
+import Link from "next/link";
+import {usePathname} from "next/navigation";
 import {
 	LayoutDashboard,
 	FolderGit2,
@@ -10,6 +14,7 @@ import {
 	Moon,
 	Sun,
 } from "lucide-react";
+import {Separator} from "@/components/ui/separator";
 import {
 	Sidebar,
 	SidebarContent,
@@ -25,6 +30,7 @@ import {
 	SidebarProvider,
 	SidebarRail,
 	SidebarTrigger,
+	useSidebar,
 } from "@/components/ui/sidebar";
 import {
 	DropdownMenu,
@@ -36,7 +42,7 @@ import {
 import {Badge} from "@/components/ui/badge";
 import {useQuery} from "@tanstack/react-query";
 import {api, AuthError} from "@/lib/api";
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 
 const navItems = [
 	{to: "/dashboard", label: "Dashboard", icon: LayoutDashboard},
@@ -45,9 +51,12 @@ const navItems = [
 	{to: "/settings", label: "Settings", icon: Settings},
 ];
 
-export function DashboardLayout() {
-	const location = useLocation();
-	const navigate = useNavigate();
+export default function DashboardLayout({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
+	const pathname = usePathname();
 	const [dark, setDark] = useState(() => {
 		if (typeof window !== "undefined") {
 			return (
@@ -77,9 +86,9 @@ export function DashboardLayout() {
 
 	useEffect(() => {
 		if (error instanceof AuthError) {
-			navigate("/login");
+			window.location.href = "/login";
 		}
-	}, [error, navigate]);
+	}, [error]);
 
 	const handleLogout = async () => {
 		try {
@@ -87,7 +96,7 @@ export function DashboardLayout() {
 		} catch {
 			// ignore
 		}
-		navigate("/login");
+		window.location.href = "/login";
 	};
 
 	if (isLoading) {
@@ -107,11 +116,11 @@ export function DashboardLayout() {
 					<SidebarMenu>
 						<SidebarMenuItem>
 							<SidebarMenuButton size="lg" asChild tooltip="AutoReview AI">
-								<Link to="/dashboard">
+								<Link href="/">
 									<img
 										src="/logo.png"
 										alt="AutoReview AI"
-										className="w-6 h-6 rounded"
+										className="w-6 h-6 rounded dark:outline dark:outline-white ml-1"
 									/>
 									<span className="font-bold text-lg">AutoReview AI</span>
 								</Link>
@@ -129,9 +138,9 @@ export function DashboardLayout() {
 									<SidebarMenuItem key={item.to}>
 										<SidebarMenuButton
 											asChild
-											isActive={location.pathname === item.to}
+											isActive={pathname === item.to}
 											tooltip={item.label}>
-											<Link to={item.to}>
+											<Link href={item.to}>
 												<item.icon className="w-4 h-4" />
 												<span>{item.label}</span>
 											</Link>
@@ -146,13 +155,13 @@ export function DashboardLayout() {
 						<SidebarGroupLabel>Plan</SidebarGroupLabel>
 						<SidebarGroupContent>
 							<div className="px-2 py-1">
-								<div className="flex items-center gap-2 text-sm">
+								<div className="flex items-center gap-2 text-sm group-data-[collapsible=icon]:hidden">
 									<Badge
 										variant="outline"
 										className={`text-xs ${user.plan === "pro" ? "border-primary text-primary" : "border-muted-foreground text-muted-foreground"}`}>
 										{user.plan === "pro" ? "Pro" : "Free"}
 									</Badge>
-									<span className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+									<span className="text-xs text-muted-foreground">
 										{user.reviewsUsed}/{user.reviewsLimit}
 									</span>
 								</div>
@@ -214,7 +223,8 @@ export function DashboardLayout() {
 									</SidebarMenuButton>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent side="top" align="start" className="w-56">
-									<DropdownMenuItem onClick={() => navigate("/settings")}>
+									<DropdownMenuItem
+										onClick={() => (window.location.href = "/settings")}>
 										<Settings className="w-4 h-4 mr-2" /> Settings
 									</DropdownMenuItem>
 									<DropdownMenuSeparator />
@@ -231,14 +241,19 @@ export function DashboardLayout() {
 				<SidebarRail />
 			</Sidebar>
 
-			<SidebarInset>
-				<header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-sm px-6">
+			<SidebarInset className="flex relative flex-1 flex-col min-h-svh bg-background overflow-x-hidden">
+				<header className="sticky top-0 flex h-14 items-center gap-3 border-b border-border/50 bg-background/80 backdrop-blur-sm px-4 md:px-6">
 					<SidebarTrigger />
+					<Separator orientation="vertical" className="h-5" />
+					<span className="text-sm font-medium capitalize text-muted-foreground">
+						{pathname === "/dashboard"
+							? "Dashboard"
+							: pathname.replace("/", "")}
+					</span>
 					<div className="flex-1" />
 				</header>
-				<main className="flex-1 p-6">
-					<Outlet />
-				</main>
+				{/* main content */}
+				<div className="flex-1 p-4 md:p-6">{children}</div>
 			</SidebarInset>
 		</SidebarProvider>
 	);

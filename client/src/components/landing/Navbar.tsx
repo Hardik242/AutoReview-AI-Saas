@@ -1,4 +1,6 @@
-import {Link} from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import {Button} from "@/components/ui/button";
 import {useQuery} from "@tanstack/react-query";
 import {api} from "@/lib/api";
@@ -14,7 +16,7 @@ export function Navbar() {
 	return (
 		<nav className="fixed top-0 left-0 right-0 z-50 glass-strong">
 			<div className="container mx-auto px-6 h-16 flex items-center justify-between">
-				<Link to="/" className="flex items-center gap-2">
+				<Link href="/" className="flex items-center gap-2">
 					<img
 						src="/logo.png"
 						alt="AutoReview AI"
@@ -46,7 +48,7 @@ export function Navbar() {
 						asChild
 						size="sm"
 						className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground btn-press">
-						<Link to="/dashboard">
+						<Link href="/dashboard">
 							<LayoutDashboard className="w-4 h-4 mr-1.5" /> Go to Dashboard
 						</Link>
 					</Button>
@@ -55,7 +57,7 @@ export function Navbar() {
 						asChild
 						size="sm"
 						className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground btn-press">
-						<Link to="/login">Get Started</Link>
+						<Link href="/login">Get Started</Link>
 					</Button>
 				)}
 			</div>

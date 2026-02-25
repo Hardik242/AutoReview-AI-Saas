@@ -9,10 +9,12 @@ node_modules/
 # Build output
 dist/
 build/
+.next/
 
 # IDE
 .vscode/
 .idea/
+.agents/
 *.swp
 *.swo
 

@@ -1,6 +1,6 @@
 # AutoReview AI — Client
 
-> Modern SaaS dashboard for managing AI-powered code reviews. Built with React, Vite, and shadcn/ui.
+> Modern SaaS dashboard for managing AI-powered code reviews. Built with Next.js 16 App Router, shadcn/ui, and Tailwind CSS 4.
 
 ## ✨ Features
 
@@ -8,19 +8,20 @@
 - **Dark / Light Mode** — Toggle in sidebar, persisted to localStorage, respects system preference
 - **Dashboard** — Stats cards, area chart (reviews over time), bar chart (reviews by status)
 - **Repository Management** — Searchable GitHub repo picker, connect/disconnect with one click
-- **Review History** — Filterable by status, searchable by PR title, detail dialog with AI summary
-- **Settings** — URL-synced tabs (`?tab=profile|billing|autofix|rules`), plan comparison, danger zone
+- **Review History** — Filterable by status, searchable by PR title, detail dialog with markdown-rendered AI summary
+- **Settings** — URL-synced tabs (`?tab=profile|billing|rules`), plan comparison
 - **Auth Guard** — All dashboard routes protected, auto-redirect on 401, login page redirect if authenticated
 - **Stripe Integration** — Upgrade to Pro checkout, manage subscription via billing portal
+- **SEO** — Next.js Metadata API for search engine optimization
+- **Loading States** — Suspense boundaries with skeleton loaders
 
 ## 🛠️ Tech Stack
 
 | Layer         | Technology                      |
 | ------------- | ------------------------------- |
-| Framework     | React 19 + TypeScript           |
-| Build         | Vite 7                          |
-| Routing       | React Router 6                  |
-| Styling       | Tailwind CSS 3                  |
+| Framework     | Next.js 16 (App Router)         |
+| Language      | React 19 + TypeScript           |
+| Styling       | Tailwind CSS 4                  |
 | Components    | shadcn/ui (Radix UI primitives) |
 | Data Fetching | TanStack Query (React Query)    |
 | Charts        | Recharts                        |
@@ -32,38 +33,36 @@
 
 ```
 client/
+├── app/
+│   ├── (dashboard)/
+│   │   ├── layout.tsx           # Sidebar + auth guard
+│   │   ├── loading.tsx          # Dashboard skeleton loader
+│   │   ├── dashboard/page.tsx   # Stats + charts
+│   │   ├── repositories/page.tsx# Repo management
+│   │   ├── reviews/page.tsx     # Review history
+│   │   └── settings/page.tsx    # Account settings (tabbed)
+│   ├── login/page.tsx           # GitHub OAuth login
+│   ├── globals.css              # Theme (warm amber, light/dark)
+│   ├── layout.tsx               # Root layout + providers + metadata
+│   ├── loading.tsx              # Root skeleton loader
+│   ├── not-found.tsx            # 404 page
+│   ├── page.tsx                 # Landing page
+│   └── providers.tsx            # QueryClient + ThemeProvider
 ├── public/
 │   └── logo.png                 # App icon (favicon + navbar)
 ├── src/
 │   ├── components/
-│   │   ├── landing/
-│   │   │   ├── Navbar.tsx        # Auth-aware landing navbar
-│   │   │   ├── HeroSection.tsx   # Landing hero
-│   │   │   ├── HowItWorksSection.tsx
-│   │   │   ├── FeaturesSection.tsx
-│   │   │   ├── PricingSection.tsx
-│   │   │   └── Footer.tsx
-│   │   ├── ui/                   # shadcn/ui components (49 components)
-│   │   └── DashboardLayout.tsx   # Sidebar layout + auth guard
+│   │   ├── landing/             # Landing page sections (Hero, Features, Pricing, etc.)
+│   │   └── ui/                  # shadcn/ui components
 │   ├── hooks/
-│   │   └── use-mobile.tsx        # Mobile detection hook
-│   ├── lib/
-│   │   ├── api.ts               # API client + TypeScript interfaces
-│   │   └── utils.ts             # cn() utility
-│   ├── pages/
-│   │   ├── Index.tsx            # Landing page
-│   │   ├── Login.tsx            # GitHub OAuth login
-│   │   ├── Dashboard.tsx        # Stats + charts
-│   │   ├── Repositories.tsx     # Repo management
-│   │   ├── Reviews.tsx          # Review history
-│   │   └── Settings.tsx         # Account settings (tabbed)
-│   ├── App.tsx                  # Router + providers
-│   ├── index.css                # Theme (warm amber, light/dark)
-│   └── main.tsx                 # Entry point
-├── index.html                   # SEO meta tags + favicon
+│   │   ├── use-mobile.tsx       # Mobile detection hook
+│   │   └── use-toast.ts         # Toast state management
+│   └── lib/
+│       ├── api.ts               # API client + TypeScript interfaces
+│       └── utils.ts             # cn() utility
+├── next.config.mjs
 ├── tailwind.config.ts
 ├── tsconfig.json
-├── vite.config.ts
 └── package.json
 ```
 
@@ -105,10 +104,10 @@ Warm amber color palette with light and dark mode support:
 
 ```bash
 # Install dependencies
-npm install --legacy-peer-deps
+npm install
 
 # Create env file
-echo "VITE_API_URL=http://localhost:8000" > .env
+cp .env.example .env
 
 # Start dev server
 npm run dev
@@ -116,11 +115,12 @@ npm run dev
 
 ### Scripts
 
-| Script            | Description                 |
-| ----------------- | --------------------------- |
-| `npm run dev`     | Start Vite dev server (HMR) |
-| `npm run build`   | Production build            |
-| `npm run preview` | Preview production build    |
+| Script          | Description              |
+| --------------- | ------------------------ |
+| `npm run dev`   | Start Next.js dev server |
+| `npm run build` | Production build         |
+| `npm run start` | Start production server  |
+| `npm run lint`  | Run ESLint               |
 
 ## 🔐 Auth Flow
 
@@ -130,14 +130,14 @@ Landing Page → "Get Started" → Login Page
   → GitHub OAuth consent screen
   → Callback sets HttpOnly cookies (access + refresh tokens)
   → Redirect to CLIENT_URL (/) → detects auth → redirects to /dashboard
-  → DashboardLayout validates session via useQuery("user")
+  → Dashboard layout validates session via useQuery("user")
   → On 401 → redirect to /login
 ```
 
 ## 📊 Dashboard Data Flow
 
 ```
-Dashboard.tsx
+Dashboard page
   ├── useQuery("user")   → GET /user/profile   → plan, usage
   ├── useQuery("stats")  → GET /user/stats     → charts, cards
   ├── useQuery("repos")  → GET /repos          → connected repos
@@ -146,15 +146,10 @@ Dashboard.tsx
 
 ## 🌐 Environment Variables
 
-| Variable       | Description          | Default                 |
-| -------------- | -------------------- | ----------------------- |
-| `VITE_API_URL` | Backend API base URL | `http://localhost:8000` |
+| Variable              | Description          | Default                 |
+| --------------------- | -------------------- | ----------------------- |
+| `NEXT_PUBLIC_API_URL` | Backend API base URL | `http://localhost:8000` |
 
-## 📦 Build
+## 📦 Deployment
 
-```bash
-npm run build
-# Output: dist/ (69KB CSS + 1MB JS, 311KB gzipped)
-```
-
-The `dist/` folder is a static SPA that can be deployed to any static hosting (Vercel, Netlify, Cloudflare Pages, etc.). Configure your hosting to redirect all routes to `index.html` for client-side routing.
+Deploy to **Vercel** with zero configuration — Vercel auto-detects Next.js and handles builds, routing, and edge caching. Set `NEXT_PUBLIC_API_URL` in Vercel's environment variables to your production API URL.

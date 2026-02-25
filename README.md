@@ -11,7 +11,7 @@
 
 ---
 
-AutoReview AI automatically reviews your GitHub pull requests using Google Gemini. Connect your repos, open a PR, and get instant AI-powered feedback — inline comments, security audits, and even auto-fix commits.
+AutoReview AI automatically reviews your GitHub pull requests using Google Gemini. Connect your repos, open a PR, and get instant AI-powered feedback — summary comments, inline code review comments, and security audits.
 
 ## ✨ Features
 
@@ -22,7 +22,6 @@ AutoReview AI automatically reviews your GitHub pull requests using Google Gemin
 | Reviews per month                 |  30  | 300 |
 | Inline comments on specific lines |  —   | ✅  |
 | Security & performance audits     |  —   | ✅  |
-| Auto-fix commits                  |  —   | ✅  |
 | Custom review rules               |  —   | ✅  |
 | Priority processing queue         |  —   | ✅  |
 
@@ -32,7 +31,7 @@ AutoReview AI automatically reviews your GitHub pull requests using Google Gemin
 - **Charts** — Review activity over time, status breakdown
 - **Repository management** — Searchable GitHub repo picker, one-click connect
 - **Review history** — Filterable, searchable, with AI summary detail view
-- **Settings** — Profile, billing, auto-fix toggle, custom rules (URL-synced tabs)
+- **Settings** — Profile, billing, custom rules (URL-synced tabs)
 
 ### Security
 
@@ -45,26 +44,26 @@ AutoReview AI automatically reviews your GitHub pull requests using Google Gemin
 
 ### Backend ([docs](./api/README.md))
 
-| Layer         | Technology               |
-| ------------- | ------------------------ |
-| Runtime       | Node.js + TypeScript     |
-| Framework     | Express 5                |
-| Database      | PostgreSQL + Drizzle ORM |
-| Vector Search | pgvector (RAG context)   |
-| Queue         | BullMQ + Redis           |
-| AI            | Google Gemini            |
-| Payments      | Stripe                   |
+| Layer         | Technology                       |
+| ------------- | -------------------------------- |
+| Runtime       | Node.js + TypeScript             |
+| Framework     | Express 5                        |
+| Database      | PostgreSQL + Drizzle ORM         |
+| Vector Search | pgvector (RAG context)           |
+| Queue         | BullMQ + Redis                   |
+| AI            | Google Gemini (`@ai-sdk/google`) |
+| Payments      | Stripe                           |
 
 ### Frontend ([docs](./client/README.md))
 
 | Layer     | Technology                 |
 | --------- | -------------------------- |
-| Framework | React 19 + TypeScript      |
-| Build     | Vite 7                     |
-| UI        | shadcn/ui + Tailwind CSS 3 |
+| Framework | Next.js 16 (App Router)    |
+| Language  | React 19 + TypeScript      |
+| UI        | shadcn/ui + Tailwind CSS 4 |
 | Data      | TanStack Query             |
 | Charts    | Recharts                   |
-| Routing   | React Router 6             |
+| Animation | Framer Motion              |
 
 ## 🏗️ Architecture
 
@@ -99,8 +98,8 @@ npm run dev:all
 
 # Client (new terminal)
 cd client
-npm install --legacy-peer-deps
-echo "VITE_API_URL=http://localhost:8000" > .env
+npm install
+cp .env.example .env
 npm run dev
 ```
 

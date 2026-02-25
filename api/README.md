@@ -22,14 +22,14 @@
 
 - **GitHub OAuth** — Custom OAuth flow with HttpOnly JWT cookies (access + refresh tokens)
 - **Webhook Processing** — HMAC-SHA256 verified GitHub webhooks for PR events
-- **Repository Management** — Connect/disconnect repos, auto-fetch user's GitHub repos via Octokit
+- **Repository Management** — Connect/disconnect repos, auto-register webhooks via Octokit
 
 ### AI Review Engine
 
-- **Gemini-Powered Reviews** — Uses Google Gemini to analyze code diffs and generate reviews
+- **Gemini-Powered Reviews** — Uses `@ai-sdk/google` (Vercel AI SDK) to analyze code diffs
 - **RAG Context** — pgvector-based code embeddings for repository-aware context retrieval
+- **Dual Review Tiers** — Basic (summary only, `gemini-2.0-flash-lite`) and Pro (structured output with inline comments, `gemini-2.0-flash`)
 - **Inline Comments** — Posts line-by-line code review comments directly on PRs (Pro)
-- **Auto-Fix** — Automatically commits suggested fixes to PR branches (Pro)
 
 ### Background Jobs
 
@@ -39,7 +39,7 @@
 ### Monetization
 
 - **Stripe Integration** — Checkout sessions, billing portal, subscription webhooks
-- **Tiered Plans** — Free (30 reviews/mo, summary only) and Pro (300 reviews/mo, inline + auto-fix + custom rules)
+- **Tiered Plans** — Free (30 reviews/mo, summary only) and Pro (300 reviews/mo, inline + custom rules)
 
 ### Analytics
 
@@ -56,7 +56,7 @@
 | Database   | PostgreSQL + Drizzle ORM                |
 | Vector DB  | pgvector (code embeddings)              |
 | Queue      | BullMQ + Redis (ioredis)                |
-| AI         | Google Gemini (`@google/generative-ai`) |
+| AI         | Vercel AI SDK (`ai` + `@ai-sdk/google`) |
 | GitHub     | Octokit                                 |
 | Payments   | Stripe                                  |
 | Auth       | JWT (HttpOnly cookies)                  |
@@ -68,33 +68,38 @@
 api/
 ├── src/
 │   ├── config/
-│   │   └── env.ts              # Environment validation (Zod)
+│   │   └── env.ts              # Environment validation
 │   ├── controllers/
 │   │   ├── auth.controller.ts   # GitHub OAuth callback
 │   │   ├── repo.controller.ts   # Repo CRUD + GitHub repo listing
 │   │   ├── review.controller.ts # Review history
 │   │   ├── rules.controller.ts  # Custom review rules CRUD
 │   │   ├── stripe.controller.ts # Checkout/portal sessions
-│   │   ├── user.controller.ts   # Profile, auto-fix, stats
+│   │   ├── user.controller.ts   # Profile + stats
 │   │   └── webhook.controller.ts# GitHub + Stripe webhooks
 │   ├── db/
 │   │   ├── index.ts             # Drizzle client
 │   │   └── schema.ts            # Tables: users, repos, reviews, rules, embeddings
 │   ├── middlewares/
-│   │   ├── auth.middleware.ts    # JWT verification
+│   │   ├── auth.middleware.ts    # JWT verification + refresh
+│   │   ├── error.middleware.ts   # Global error handler
 │   │   └── webhook.middleware.ts # HMAC-SHA256 signature verification
+│   ├── queues/
+│   │   └── review.queue.ts      # BullMQ queue definitions
 │   ├── routes/                  # Express routers
 │   ├── services/
 │   │   ├── gemini.service.ts    # AI review generation + embeddings
-│   │   ├── github.service.ts    # Octokit: PR diffs, comments, fixes, repo listing
+│   │   ├── github.service.ts    # Octokit: PR diffs, comments, repo listing
 │   │   ├── rag.service.ts       # pgvector similarity search
-│   │   ├── repo.service.ts      # Repository CRUD
+│   │   ├── repo.service.ts      # Repository CRUD + webhook registration
 │   │   ├── review.processor.ts  # Full review pipeline orchestrator
 │   │   ├── rules.service.ts     # Custom rules CRUD
 │   │   ├── stripe.service.ts    # Stripe checkout, portal, subscription handlers
-│   │   └── user.service.ts      # User profile, auto-fix, stats aggregation
+│   │   └── user.service.ts      # User profile + stats aggregation
+│   ├── types/                   # TypeScript type declarations
 │   ├── utils/
-│   │   └── jwt.ts               # Token generation + verification
+│   │   ├── jwt.ts               # Token generation + verification
+│   │   └── cookies.ts           # Auth cookie management
 │   ├── index.ts                 # Express app entry point
 │   └── worker.ts                # BullMQ worker entry point
 ├── drizzle.config.ts
@@ -134,26 +139,29 @@ npm run dev:all
 | `npm run dev`     | Start API server (nodemon)           |
 | `npm run worker`  | Start BullMQ worker (nodemon)        |
 | `npm run dev:all` | Start both API + Worker concurrently |
+| `npm run build`   | Compile TypeScript                   |
+| `npm run start`   | Start production API server          |
 
 ## 🔐 Environment Variables
 
-| Variable                | Description                                 |
-| ----------------------- | ------------------------------------------- |
-| `PORT`                  | Server port (default: 8000)                 |
-| `NODE_ENV`              | `development` or `production`               |
-| `CLIENT_URL`            | Frontend URL for CORS + redirects           |
-| `DATABASE_URL`          | PostgreSQL connection string                |
-| `GITHUB_CLIENT_ID`      | GitHub OAuth App client ID                  |
-| `GITHUB_CLIENT_SECRET`  | GitHub OAuth App client secret              |
-| `GITHUB_REDIRECT_URI`   | OAuth callback URL                          |
-| `GITHUB_WEBHOOK_SECRET` | HMAC secret for webhook verification        |
-| `JWT_ACCESS_SECRET`     | Access token signing secret                 |
-| `JWT_REFRESH_SECRET`    | Refresh token signing secret                |
-| `REDIS_URL`             | Redis connection URL                        |
-| `GEMINI_API_KEY`        | Google Gemini API key                       |
-| `STRIPE_SECRET_KEY`     | Stripe secret key (`sk_test_...`)           |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret (`whsec_...`) |
-| `STRIPE_PRO_PRICE_ID`   | Stripe Price ID for Pro plan (`price_...`)  |
+| Variable                       | Description                                      |
+| ------------------------------ | ------------------------------------------------ |
+| `PORT`                         | Server port (default: 8000)                      |
+| `NODE_ENV`                     | `development` or `production`                    |
+| `CLIENT_URL`                   | Frontend URL for CORS + redirects                |
+| `API_URL`                      | API's own public URL (for webhook URLs)          |
+| `DATABASE_URL`                 | PostgreSQL connection string                     |
+| `GITHUB_CLIENT_ID`             | GitHub OAuth App client ID                       |
+| `GITHUB_CLIENT_SECRET`         | GitHub OAuth App client secret                   |
+| `GITHUB_REDIRECT_URI`          | OAuth callback URL                               |
+| `GITHUB_WEBHOOK_SECRET`        | HMAC secret for webhook verification             |
+| `JWT_ACCESS_SECRET`            | Access token signing secret                      |
+| `JWT_REFRESH_SECRET`           | Refresh token signing secret                     |
+| `REDIS_URL`                    | Redis connection URL                             |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Google Gemini API key (used by `@ai-sdk/google`) |
+| `STRIPE_SECRET_KEY`            | Stripe secret key (`sk_test_...`)                |
+| `STRIPE_WEBHOOK_SECRET`        | Stripe webhook signing secret (`whsec_...`)      |
+| `STRIPE_PRO_PRICE_ID`          | Stripe Price ID for Pro plan (`price_...`)       |
 
 ## 📡 API Endpoints
 
@@ -168,11 +176,10 @@ npm run dev:all
 
 ### User
 
-| Method | Endpoint                | Description                      |
-| ------ | ----------------------- | -------------------------------- |
-| GET    | `/api/v1/user/profile`  | Get user profile                 |
-| GET    | `/api/v1/user/stats`    | Get dashboard stats + chart data |
-| PATCH  | `/api/v1/user/auto-fix` | Toggle auto-fix (Pro only)       |
+| Method | Endpoint               | Description                      |
+| ------ | ---------------------- | -------------------------------- |
+| GET    | `/api/v1/user/profile` | Get user profile                 |
+| GET    | `/api/v1/user/stats`   | Get dashboard stats + chart data |
 
 ### Repositories
 
@@ -215,9 +222,10 @@ npm run dev:all
 
 ## 🔒 Security
 
-- **HttpOnly Cookies** — JWTs stored in HttpOnly, Secure, SameSite=Strict cookies
+- **HttpOnly Cookies** — JWTs stored in HttpOnly, Secure, SameSite cookies (SameSite=None in production for cross-origin)
 - **HMAC Verification** — SHA-256 signature validation on all GitHub webhooks
 - **Stripe Webhook Verification** — Event signature validation via Stripe SDK
 - **Input Validation** — Zod schemas on all request bodies
 - **CORS** — Restricted to `CLIENT_URL` origin only
 - **Helmet** — Security headers via helmet middleware
+- **Rate Limiting** — 100 req/15min general, 20 req/15min for auth routes

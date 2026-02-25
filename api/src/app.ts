@@ -24,9 +24,11 @@ app.use(
 );
 
 // Rate limiting — prevent brute-force and abuse
+const isDev = process.env.NODE_ENV !== "production";
+
 const apiLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutes
-	max: 100, // 100 requests per window per IP
+	max: isDev ? 1000 : 100, // relaxed in dev, strict in prod
 	standardHeaders: true,
 	legacyHeaders: false,
 	message: {
@@ -37,7 +39,7 @@ const apiLimiter = rateLimit({
 
 const authLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000,
-	max: 20, // stricter for auth routes
+	max: isDev ? 100 : 20, // relaxed in dev, strict in prod
 	standardHeaders: true,
 	legacyHeaders: false,
 	message: {

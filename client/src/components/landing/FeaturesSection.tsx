@@ -1,3 +1,5 @@
+"use client";
+
 import {motion} from "framer-motion";
 import {Bug, Shield, Zap, Settings, GitCommit, Brain} from "lucide-react";
 

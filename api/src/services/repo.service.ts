@@ -6,15 +6,7 @@ import {getUserById} from "./user.service";
 import {env} from "../config/env";
 
 const getWebhookUrl = () => {
-	// In production, CLIENT_URL's API equivalent. We derive it from CLIENT_URL or use a dedicated env var.
-	const apiBase =
-		process.env.API_URL || env.CLIENT_URL.replace("://", "://api.");
-	// Fallback: use the configured redirect URI's origin
-	const origin = env.GITHUB_REDIRECT_URI.replace(
-		/\/api\/v1\/auth\/github\/callback$/,
-		"",
-	);
-	return `${origin}/api/v1/webhooks/github`;
+	return `${env.API_URL}/api/v1/webhooks/github`;
 };
 
 export const connectRepository = async (

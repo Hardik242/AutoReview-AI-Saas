@@ -1,13 +1,16 @@
+"use client";
+
 import {Github} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {motion} from "framer-motion";
 import {api} from "@/lib/api";
-import {useQuery} from "@tanstack/react-query";
-import {useNavigate} from "react-router-dom";
-import {useEffect} from "react";
+import {useQuery, useMutation} from "@tanstack/react-query";
+import {useEffect, useState} from "react";
+import {useRouter} from "next/navigation";
 
-const Login = () => {
-	const navigate = useNavigate();
+export default function Login() {
+	const [token, setToken] = useState("");
+	const router = useRouter();
 
 	const {data: user} = useQuery({
 		queryKey: ["user"],
@@ -17,9 +20,9 @@ const Login = () => {
 
 	useEffect(() => {
 		if (user) {
-			navigate("/dashboard", {replace: true});
+			router.push("/dashboard");
 		}
-	}, [user, navigate]);
+	}, [user, router]);
 
 	return (
 		<div className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden">
@@ -60,6 +63,4 @@ const Login = () => {
 			</motion.div>
 		</div>
 	);
-};
-
-export default Login;
+}

@@ -28,7 +28,9 @@ export const env = {
 
 	REDIS_URL: process.env.REDIS_URL || "redis://localhost:6379",
 
-	GEMINI_API_KEY: requireEnv("GEMINI_API_KEY"),
+	GOOGLE_GENERATIVE_AI_API_KEY: requireEnv("GOOGLE_GENERATIVE_AI_API_KEY"),
+
+	API_URL: process.env.API_URL || "http://localhost:8000",
 
 	STRIPE_SECRET_KEY: requireEnv("STRIPE_SECRET_KEY"),
 	STRIPE_WEBHOOK_SECRET: requireEnv("STRIPE_WEBHOOK_SECRET"),

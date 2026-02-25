@@ -1,3 +1,5 @@
+"use client";
+
 import {useQuery} from "@tanstack/react-query";
 import {api} from "@/lib/api";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
@@ -10,7 +12,7 @@ import {
 	TrendingUp,
 	Loader2,
 } from "lucide-react";
-import {useSearchParams} from "react-router-dom";
+import {useSearchParams} from "next/navigation";
 import {useEffect} from "react";
 import {toast} from "sonner";
 import {
@@ -34,7 +36,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function Dashboard() {
-	const [searchParams] = useSearchParams();
+	const searchParams = useSearchParams();
 
 	const {data: user} = useQuery({
 		queryKey: ["user"],

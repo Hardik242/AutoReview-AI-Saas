@@ -1,3 +1,5 @@
+"use client";
+
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {api, GitHubRepo} from "@/lib/api";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
@@ -6,6 +8,7 @@ import {Badge} from "@/components/ui/badge";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
@@ -20,6 +23,7 @@ import {
 	Globe,
 	Search,
 } from "lucide-react";
+
 import {useState, useMemo} from "react";
 import {toast} from "sonner";
 
@@ -80,10 +84,10 @@ export default function Repositories() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 				<div>
 					<h1 className="text-2xl font-bold">Repositories</h1>
-					<p className="text-muted-foreground mt-1">
+					<p className="text-muted-foreground mt-1 text-sm">
 						Connect your GitHub repositories to enable automated code reviews.
 					</p>
 				</div>
@@ -97,6 +101,9 @@ export default function Repositories() {
 					<DialogContent className="max-w-lg max-h-[80vh]">
 						<DialogHeader>
 							<DialogTitle>Connect a Repository</DialogTitle>
+							<DialogDescription>
+								Select a repository from your GitHub account to connect.
+							</DialogDescription>
 						</DialogHeader>
 						<div className="relative">
 							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -171,7 +178,7 @@ export default function Repositories() {
 				<div className="grid gap-3">
 					{repos.map((repo) => (
 						<Card key={repo.id}>
-							<CardContent className="flex items-center justify-between p-4">
+							<CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4">
 								<div className="flex items-center gap-3 min-w-0">
 									<FolderGit2 className="w-5 h-5 text-primary shrink-0" />
 									<div className="min-w-0">
