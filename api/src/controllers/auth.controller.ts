@@ -38,7 +38,7 @@ export const githubCallback = async (
 
 		setAuthCookies(res, accessToken, refreshToken);
 
-		res.redirect(env.CLIENT_URL);
+		res.redirect(env.CLIENT_URL + "/dashboard");
 	} catch (error) {
 		next(error);
 	}

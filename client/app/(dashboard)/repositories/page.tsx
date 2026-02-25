@@ -135,7 +135,10 @@ export default function Repositories() {
 										className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors text-left"
 										onClick={() => connectMutation.mutate(repo)}
 										disabled={connectMutation.isPending}>
-										{repo.private ? (
+										{connectMutation.isPending &&
+										connectMutation.variables?.id === repo.id ? (
+											<Loader2 className="w-4 h-4 text-primary animate-spin shrink-0" />
+										) : repo.private ? (
 											<Lock className="w-4 h-4 text-muted-foreground shrink-0" />
 										) : (
 											<Globe className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -182,7 +185,9 @@ export default function Repositories() {
 								<div className="flex items-center gap-3 min-w-0">
 									<FolderGit2 className="w-5 h-5 text-primary shrink-0" />
 									<div className="min-w-0">
-										<p className="font-medium truncate">{repo.fullName}</p>
+										<p className="font-medium truncate text-wrap">
+											{repo.fullName}
+										</p>
 										<p className="text-xs text-muted-foreground">
 											Connected {new Date(repo.createdAt).toLocaleDateString()}
 										</p>

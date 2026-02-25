@@ -18,6 +18,9 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
 	const json = await res.json();
 
 	if (!res.ok || !json.success) {
+		if (json.message === "User not found") {
+			throw new AuthError(json.message);
+		}
 		throw new Error(json.message || "Something went wrong");
 	}
 

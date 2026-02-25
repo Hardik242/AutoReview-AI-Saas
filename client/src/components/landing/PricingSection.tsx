@@ -12,7 +12,7 @@ const plans = [
 		period: "/mo",
 		features: [
 			"30 reviews/month",
-			"2 connected repos",
+			"3 connected repos",
 			"Bug + style checks",
 			"Summary comments only",
 			"7-day review history",
@@ -30,7 +30,6 @@ const plans = [
 			"Bug + security + performance",
 			"Inline line-by-line comments",
 			"Custom review rules",
-			"Auto-fix commits",
 			"Full repo RAG context",
 			"90-day review history",
 			"Priority queue processing",

@@ -15,11 +15,13 @@ export function Footer() {
 					</a>
 					<div className="flex items-center gap-8 text-sm text-muted-foreground">
 						<a
+							target="_blank"
 							href="https://github.com/Hardik242/AutoReview-AI-Saas"
 							className="hover:text-foreground transition-colors">
 							GitHub
 						</a>
 						<a
+							target="_blank"
 							href="https://github.com/Hardik242/AutoReview-AI-Saas"
 							className="hover:text-foreground transition-colors">
 							Documentation

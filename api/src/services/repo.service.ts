@@ -25,8 +25,25 @@ export const connectRepository = async (
 		});
 	}
 
-	// Auto-register GitHub webhook
 	const user = await getUserById(userId);
+
+	// Enforce plan limits
+	const limit = user.plan === "pro" ? 10 : 3;
+	const currentRepos = await db
+		.select()
+		.from(repositoriesTable)
+		.where(eq(repositoriesTable.userId, userId));
+
+	if (currentRepos.length >= limit) {
+		throw Object.assign(
+			new Error(
+				`Repository connection limit reached for the ${user.plan === "pro" ? "Pro" : "Free"} plan (${limit} max). Please upgrade to connect more repositories.`,
+			),
+			{statusCode: 403},
+		);
+	}
+
+	// Auto-register GitHub webhook
 	if (!user.githubAccessToken) {
 		throw Object.assign(new Error("GitHub access token not found"), {
 			statusCode: 401,
