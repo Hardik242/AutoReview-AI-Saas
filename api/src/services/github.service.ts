@@ -138,3 +138,41 @@ export const listGitHubRepos = async (accessToken: string) => {
 		updatedAt: r.updated_at,
 	}));
 };
+
+export const createRepoWebhook = async (
+	accessToken: string,
+	owner: string,
+	repo: string,
+	webhookUrl: string,
+	webhookSecret: string,
+): Promise<number> => {
+	const octokit = createOctokitClient(accessToken);
+	const {data} = await octokit.rest.repos.createWebhook({
+		owner,
+		repo,
+		config: {
+			url: webhookUrl,
+			content_type: "json",
+			secret: webhookSecret,
+			insecure_ssl: "0",
+		},
+		events: ["pull_request"],
+		active: true,
+	});
+	return data.id;
+};
+
+export const deleteRepoWebhook = async (
+	accessToken: string,
+	owner: string,
+	repo: string,
+	webhookId: number,
+): Promise<void> => {
+	const octokit = createOctokitClient(accessToken);
+	try {
+		await octokit.rest.repos.deleteWebhook({owner, repo, hook_id: webhookId});
+	} catch (err: any) {
+		// 404 means webhook already deleted — that's fine
+		if (err.status !== 404) throw err;
+	}
+};
