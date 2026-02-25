@@ -3,12 +3,13 @@ import {env} from "../config/env";
 
 const isProduction = env.NODE_ENV === "production";
 
-// With Vercel proxy, cookies are same-origin in production.
-// sameSite: "lax" is secure and works in all browsers (including Brave).
+// In production, API (onrender.com) and client (vercel.app) are on different domains.
+// sameSite: "none" + secure: true allows cross-site cookies to be sent with
+// credentialed fetch() requests. Without this, the browser silently drops cookies.
 const cookieOptions = {
 	httpOnly: true,
 	secure: isProduction,
-	sameSite: "lax" as const,
+	sameSite: (isProduction ? "none" : "lax") as "none" | "lax",
 };
 
 export const setAuthCookies = (
