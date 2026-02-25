@@ -17,7 +17,14 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import {FileSearch, Loader2, Search, Filter} from "lucide-react";
+import {
+	FileSearch,
+	Loader2,
+	Search,
+	Filter,
+	ExternalLink,
+	GitPullRequest,
+} from "lucide-react";
 import {useState, useMemo} from "react";
 
 const statusVariant = (status: string) => {
@@ -120,17 +127,16 @@ export default function Reviews() {
 							onClick={() => setSelected(review)}>
 							<CardContent className="flex items-center justify-between p-4">
 								<div className="min-w-0">
-									<p className="font-medium truncate">
-										{review.prTitle || `PR #${review.prNumber}`}
-									</p>
-									<p className="text-xs text-muted-foreground mt-0.5">
-										{new Date(review.createdAt).toLocaleString()}
-										{review.issuesFound != null && review.issuesFound > 0 && (
-											<span className="ml-2">
-												· {review.issuesFound} issue
-												{review.issuesFound > 1 ? "s" : ""}
-											</span>
-										)}
+									<div className="flex items-center gap-2">
+										<GitPullRequest className="w-4 h-4 text-muted-foreground" />
+										<p className="font-medium truncate">
+											{review.prTitle || `PR #${review.prNumber}`}
+										</p>
+									</div>
+									<p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+										<span>{review.repoFullName || "Unknown Repository"}</span>
+										<span>•</span>
+										<span>{new Date(review.createdAt).toLocaleString()}</span>
 									</p>
 								</div>
 								<Badge variant={statusVariant(review.status)}>
@@ -144,61 +150,85 @@ export default function Reviews() {
 
 			{/* Detail Dialog */}
 			<Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-				<DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+				<DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
 					<DialogHeader>
-						<DialogTitle>
-							{selected?.prTitle || `PR #${selected?.prNumber}`}
+						<DialogTitle className="flex items-center justify-between pr-6">
+							<span className="truncate">
+								{selected?.prTitle || `PR #${selected?.prNumber}`}
+							</span>
+							{selected?.repoFullName && (
+								<a
+									href={`https://github.com/${selected.repoFullName}/pull/${selected.prNumber}`}
+									target="_blank"
+									rel="noreferrer"
+									className="flex items-center gap-1 text-sm font-normal text-muted-foreground hover:text-primary transition-colors">
+									<ExternalLink className="w-4 h-4" />
+									View on GitHub
+								</a>
+							)}
 						</DialogTitle>
 					</DialogHeader>
 					{selected && (
-						<div className="space-y-4">
-							<div className="grid grid-cols-2 gap-3 text-sm">
+						<div className="space-y-6">
+							<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/30 p-4 rounded-lg border border-border">
 								<div>
-									<span className="text-muted-foreground">Status</span>
-									<div className="mt-1">
-										<Badge variant={statusVariant(selected.status)}>
-											{selected.status}
-										</Badge>
-									</div>
+									<span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">
+										Status
+									</span>
+									<Badge variant={statusVariant(selected.status)}>
+										{selected.status}
+									</Badge>
 								</div>
 								<div>
-									<span className="text-muted-foreground">Review Type</span>
-									<p className="mt-1 font-medium capitalize">
-										{selected.reviewType}
+									<span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">
+										Repository
+									</span>
+									<p
+										className="font-medium truncate"
+										title={selected.repoFullName || ""}>
+										{selected.repoFullName || "—"}
 									</p>
 								</div>
 								<div>
-									<span className="text-muted-foreground">Created</span>
-									<p className="mt-1 text-xs">
+									<span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">
+										Format
+									</span>
+									<p className="font-medium capitalize">
+										{selected.reviewType === "full"
+											? "Pro (Markdown)"
+											: "Basic"}
+									</p>
+								</div>
+								<div>
+									<span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">
+										Created
+									</span>
+									<p className="text-xs mt-1">
 										{new Date(selected.createdAt).toLocaleString()}
-									</p>
-								</div>
-								<div>
-									<span className="text-muted-foreground">Issues Found</span>
-									<p className="mt-1 font-medium">
-										{selected.issuesFound ?? "—"}
 									</p>
 								</div>
 							</div>
 
 							{selected.summary && (
 								<div>
-									<p className="text-sm font-medium mb-2">Summary</p>
-									<div className="text-sm bg-muted/50 rounded-lg p-4 whitespace-pre-wrap">
+									<p className="text-sm font-semibold mb-3 flex items-center gap-2">
+										AI Review Output
+									</p>
+									<div className="text-sm bg-muted/40 border border-border rounded-lg p-5 whitespace-pre-wrap font-mono relative">
 										{selected.summary}
 									</div>
 								</div>
 							)}
 
 							{selected.status === "queued" && (
-								<p className="text-sm text-muted-foreground">
+								<p className="text-sm text-muted-foreground text-center py-4">
 									This review is waiting in the queue and will be processed
 									shortly.
 								</p>
 							)}
 							{selected.status === "processing" && (
-								<div className="flex items-center gap-2 text-sm text-muted-foreground">
-									<Loader2 className="w-4 h-4 animate-spin" /> AI is analyzing
+								<div className="flex items-center justify-center gap-2 text-sm text-primary py-4">
+									<Loader2 className="w-5 h-5 animate-spin" /> AI is analyzing
 									this PR...
 								</div>
 							)}

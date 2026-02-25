@@ -11,7 +11,6 @@ export interface ReviewJobData {
 	headRef: string;
 	baseRef: string;
 	reviewType: "basic" | "full";
-	autoFixEnabled: boolean;
 }
 
 export const freeReviewQueue = new Queue<ReviewJobData>("review-free", {

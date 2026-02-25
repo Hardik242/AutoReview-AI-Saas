@@ -49,6 +49,23 @@ export const getPRFiles = async (
 	);
 };
 
+export const getPullRequestRawDiff = async (
+	octokit: Octokit,
+	owner: string,
+	repo: string,
+	prNumber: number,
+): Promise<string> => {
+	const {data} = await octokit.rest.pulls.get({
+		owner,
+		repo,
+		pull_number: prNumber,
+		mediaType: {
+			format: "diff",
+		},
+	});
+	return data as unknown as string;
+};
+
 export const postPRSummaryComment = async (
 	octokit: Octokit,
 	owner: string,

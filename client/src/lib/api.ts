@@ -39,11 +39,6 @@ export const api = {
 	user: {
 		profile: () => request<UserProfile>("/user/profile"),
 		stats: () => request<UserStats>("/user/stats"),
-		toggleAutoFix: (enabled: boolean) =>
-			request("/user/auto-fix", {
-				method: "PATCH",
-				body: JSON.stringify({enabled}),
-			}),
 	},
 	repos: {
 		list: () => request<Repo[]>("/repos"),
@@ -83,7 +78,6 @@ export interface UserProfile {
 	reviewsUsed: number;
 	reviewsLimit: number;
 	reviewsResetAt: string;
-	autoFixEnabled: boolean;
 }
 
 export interface UserStats {
@@ -122,6 +116,7 @@ export interface Repo {
 export interface Review {
 	id: number;
 	repositoryId: number;
+	repoFullName: string | null;
 	userId: number;
 	prNumber: number;
 	prTitle: string | null;

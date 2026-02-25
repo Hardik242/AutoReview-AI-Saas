@@ -99,7 +99,6 @@ export const handleGitHubWebhook = async (
 			headRef: pull_request.head.ref,
 			baseRef: pull_request.base.ref,
 			reviewType,
-			autoFixEnabled: user.plan === "pro" && user.autoFixEnabled,
 		});
 
 		res.status(200).json({

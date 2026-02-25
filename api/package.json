@@ -16,7 +16,9 @@
 	"license": "ISC",
 	"type": "commonjs",
 	"dependencies": {
+		"@ai-sdk/google": "^3.0.31",
 		"@google/generative-ai": "^0.24.1",
+		"ai": "^6.0.99",
 		"axios": "^1.13.5",
 		"bullmq": "^5.70.1",
 		"cookie-parser": "^1.4.7",

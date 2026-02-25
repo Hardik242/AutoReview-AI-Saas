@@ -23,7 +23,6 @@ export const usersTable = pgTable("users", {
 	reviewsLimit: integer("reviews_limit").default(30).notNull(),
 	reviewsUsed: integer("reviews_used").default(0).notNull(),
 	reviewsResetAt: timestamp("reviews_reset_at").defaultNow().notNull(),
-	autoFixEnabled: boolean("auto_fix_enabled").default(false).notNull(),
 	stripeCustomerId: varchar("stripe_customer_id", {length: 255}),
 	stripeSubscriptionId: varchar("stripe_subscription_id", {length: 255}),
 	createdAt: timestamp("created_at").defaultNow().notNull(),

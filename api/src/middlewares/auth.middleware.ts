@@ -20,8 +20,7 @@ export const authenticate = (
 		const accessToken = req.cookies.access_token;
 
 		if (!accessToken) {
-			res.status(401).json({success: false, message: "Not authenticated"});
-			return;
+			throw new Error("No access token");
 		}
 
 		const payload = verifyAccessToken(accessToken);

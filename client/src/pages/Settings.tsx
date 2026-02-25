@@ -51,15 +51,6 @@ export default function SettingsPage() {
 		setSearchParams({tab});
 	};
 
-	const autoFixMutation = useMutation({
-		mutationFn: (enabled: boolean) => api.user.toggleAutoFix(enabled),
-		onSuccess: () => {
-			queryClient.invalidateQueries({queryKey: ["user"]});
-			toast.success("Auto-fix setting updated");
-		},
-		onError: (err: Error) => toast.error(err.message),
-	});
-
 	const createRuleMutation = useMutation({
 		mutationFn: (rule: string) => api.rules.create(rule),
 		onSuccess: () => {
@@ -144,10 +135,6 @@ export default function SettingsPage() {
 					<TabsTrigger value="billing" className="gap-1.5">
 						<CreditCard className="w-4 h-4" />{" "}
 						<span className="hidden sm:inline">Billing</span>
-					</TabsTrigger>
-					<TabsTrigger value="autofix" className="gap-1.5">
-						<Wand2 className="w-4 h-4" />{" "}
-						<span className="hidden sm:inline">Auto-Fix</span>
 					</TabsTrigger>
 					<TabsTrigger value="rules" className="gap-1.5">
 						<ScrollText className="w-4 h-4" />{" "}
@@ -243,7 +230,7 @@ export default function SettingsPage() {
 									</p>
 									<p className="text-sm text-muted-foreground mt-1">
 										{user?.plan === "pro"
-											? "300 reviews/month, inline comments, auto-fix, custom rules"
+											? "300 reviews/month, inline comments, custom rules"
 											: "30 reviews/month, summary comments only"}
 									</p>
 								</div>
@@ -275,7 +262,6 @@ export default function SettingsPage() {
 								{[
 									["Reviews / month", "30", "300"],
 									["Review type", "Summary", "Inline + Summary"],
-									["Auto-fix commits", "—", "✓"],
 									["Custom rules", "—", "✓"],
 									["Priority queue", "—", "✓"],
 								].map(([feature, free, pro]) => (
@@ -292,34 +278,6 @@ export default function SettingsPage() {
 							</div>
 						</CardContent>
 					</Card>
-				</TabsContent>
-
-				{/* Auto-Fix Tab */}
-				<TabsContent value="autofix" className="mt-4">
-					<ProLock>
-						<Card>
-							<CardHeader>
-								<CardTitle>Auto-Fix</CardTitle>
-								<CardDescription>
-									When enabled, AutoReview AI will automatically commit
-									suggested fixes directly to your PR branch.
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2">
-										<Wand2 className="w-5 h-5 text-primary" />
-										<span className="font-medium">Enable Auto-Fix</span>
-									</div>
-									<Switch
-										checked={user?.autoFixEnabled ?? false}
-										onCheckedChange={(v) => autoFixMutation.mutate(v)}
-										disabled={autoFixMutation.isPending}
-									/>
-								</div>
-							</CardContent>
-						</Card>
-					</ProLock>
 				</TabsContent>
 
 				{/* Rules Tab */}

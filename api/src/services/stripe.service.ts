@@ -102,7 +102,6 @@ export const handleSubscriptionDeleted = async (
 		.set({
 			plan: "free",
 			reviewsLimit: FREE_LIMITS.reviewsLimit,
-			autoFixEnabled: false,
 			stripeSubscriptionId: null,
 			updatedAt: new Date(),
 		})

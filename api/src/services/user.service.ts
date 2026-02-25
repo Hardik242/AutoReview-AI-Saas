@@ -15,27 +15,6 @@ export const getUserById = async (userId: number) => {
 	return users[0];
 };
 
-export const updateAutoFix = async (userId: number, enabled: boolean) => {
-	const user = await getUserById(userId);
-
-	if (user.plan !== "pro") {
-		throw Object.assign(
-			new Error("Auto-fix is only available on the Pro plan"),
-			{
-				statusCode: 403,
-			},
-		);
-	}
-
-	const updated = await db
-		.update(usersTable)
-		.set({autoFixEnabled: enabled, updatedAt: new Date()})
-		.where(eq(usersTable.id, userId))
-		.returning();
-
-	return updated[0];
-};
-
 export const getUserProfile = async (userId: number) => {
 	const user = await getUserById(userId);
 
@@ -48,7 +27,6 @@ export const getUserProfile = async (userId: number) => {
 		reviewsLimit: user.reviewsLimit,
 		reviewsUsed: user.reviewsUsed,
 		reviewsResetAt: user.reviewsResetAt,
-		autoFixEnabled: user.autoFixEnabled,
 	};
 };
 
