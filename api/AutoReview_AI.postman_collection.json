@@ -1,0 +1,388 @@
+{
+	"info": {
+		"name": "AutoReview AI API",
+		"description": "Complete API collection for AutoReview AI SaaS backend. All authenticated endpoints require cookies set via GitHub OAuth login.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000/api/v1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						},
+						"description": "Returns server status. No authentication required."
+					}
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"description": "GitHub OAuth authentication flow. Login is browser-based — open the GitHub Login URL in a browser to authenticate.",
+			"item": [
+				{
+					"name": "GitHub Login (Open in Browser)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/github",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "github"]
+						},
+						"description": "Redirects to GitHub OAuth consent screen. OPEN IN BROWSER, not Postman. After login, cookies are set automatically."
+					}
+				},
+				{
+					"name": "GitHub OAuth Callback",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/github/callback?code=GITHUB_AUTH_CODE",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "github", "callback"],
+							"query": [
+								{
+									"key": "code",
+									"value": "GITHUB_AUTH_CODE",
+									"description": "Authorization code from GitHub (auto-provided during OAuth flow)"
+								}
+							]
+						},
+						"description": "Callback URL that GitHub redirects to. Exchanges code for tokens, sets HttpOnly cookies, and redirects to CLIENT_URL."
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "logout"]
+						},
+						"description": "Clears authentication cookies."
+					}
+				}
+			]
+		},
+		{
+			"name": "User",
+			"description": "User profile and settings. All endpoints require authentication.",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["user", "profile"]
+						},
+						"description": "Returns user profile including plan, usage stats (reviewsUsed, reviewsLimit, reviewsResetAt), and autoFixEnabled status."
+					}
+				},
+				{
+					"name": "Toggle Auto-Fix",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"enabled\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/auto-fix",
+							"host": ["{{baseUrl}}"],
+							"path": ["user", "auto-fix"]
+						},
+						"description": "Enable or disable auto-fix commits. PRO PLAN ONLY — returns 403 for free users."
+					}
+				}
+			]
+		},
+		{
+			"name": "Repositories",
+			"description": "Manage connected GitHub repositories. All endpoints require authentication.",
+			"item": [
+				{
+					"name": "List Repositories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/repos",
+							"host": ["{{baseUrl}}"],
+							"path": ["repos"]
+						},
+						"description": "Returns all repositories connected by the authenticated user."
+					}
+				},
+				{
+					"name": "Connect Repository",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"githubRepoId\": \"123456789\",\n  \"fullName\": \"username/repo-name\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/repos/connect",
+							"host": ["{{baseUrl}}"],
+							"path": ["repos", "connect"]
+						},
+						"description": "Connect a GitHub repository for automated AI reviews. githubRepoId is the numeric GitHub repo ID, fullName is owner/repo format."
+					}
+				},
+				{
+					"name": "Disconnect Repository",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/repos/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["repos", "1"]
+						},
+						"description": "Disconnect a repository by its database ID. Only the owner can disconnect."
+					}
+				}
+			]
+		},
+		{
+			"name": "Custom Rules",
+			"description": "Manage custom review rules (Pro plan only). All endpoints require authentication.",
+			"item": [
+				{
+					"name": "List Rules",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rules",
+							"host": ["{{baseUrl}}"],
+							"path": ["rules"]
+						},
+						"description": "Returns all active custom review rules for the authenticated user."
+					}
+				},
+				{
+					"name": "Create Rule",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rule\": \"Always flag console.log statements in production code\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rules",
+							"host": ["{{baseUrl}}"],
+							"path": ["rules"]
+						},
+						"description": "Create a custom review rule in plain English. PRO PLAN ONLY — returns 403 for free users."
+					}
+				},
+				{
+					"name": "Delete Rule",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rules/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["rules", "1"]
+						},
+						"description": "Delete a custom review rule by its database ID."
+					}
+				},
+				{
+					"name": "Toggle Rule",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rules/1/toggle",
+							"host": ["{{baseUrl}}"],
+							"path": ["rules", "1", "toggle"]
+						},
+						"description": "Toggle a custom review rule on/off without deleting it."
+					}
+				}
+			]
+		},
+		{
+			"name": "Reviews",
+			"description": "Review history. All endpoints require authentication.",
+			"item": [
+				{
+					"name": "List Reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/reviews?limit=20&offset=0",
+							"host": ["{{baseUrl}}"],
+							"path": ["reviews"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Number of reviews to return (default: 20)"
+								},
+								{
+									"key": "offset",
+									"value": "0",
+									"description": "Pagination offset (default: 0)"
+								}
+							]
+						},
+						"description": "Returns paginated review history ordered by newest first."
+					}
+				},
+				{
+					"name": "Get Review Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/reviews/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["reviews", "1"]
+						},
+						"description": "Returns a single review by ID. Only accessible by the review owner."
+					}
+				}
+			]
+		},
+		{
+			"name": "Stripe",
+			"description": "Payment and subscription management. All endpoints require authentication.",
+			"item": [
+				{
+					"name": "Create Checkout Session",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/stripe/checkout",
+							"host": ["{{baseUrl}}"],
+							"path": ["stripe", "checkout"]
+						},
+						"description": "Creates a Stripe Checkout session for upgrading to Pro plan. Returns a URL to redirect the user to. Returns 400 if already on Pro."
+					}
+				},
+				{
+					"name": "Create Billing Portal Session",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/stripe/portal",
+							"host": ["{{baseUrl}}"],
+							"path": ["stripe", "portal"]
+						},
+						"description": "Creates a Stripe Billing Portal session for managing subscription (cancel, update payment method). Returns a URL to redirect the user to."
+					}
+				}
+			]
+		},
+		{
+			"name": "Webhooks",
+			"description": "Incoming webhook endpoints. These are called by external services (GitHub, Stripe), not by the frontend.",
+			"item": [
+				{
+					"name": "GitHub Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "sha256=YOUR_HMAC_SIGNATURE",
+								"description": "HMAC-SHA256 signature of the raw body using GITHUB_WEBHOOK_SECRET"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"action\": \"opened\",\n  \"number\": 1,\n  \"pull_request\": {\n    \"title\": \"Fix login bug\",\n    \"head\": {\n      \"sha\": \"abc123def456\",\n      \"ref\": \"feature/fix-login\"\n    },\n    \"base\": {\n      \"ref\": \"main\"\n    }\n  },\n  \"repository\": {\n    \"full_name\": \"username/repo-name\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/webhooks/github",
+							"host": ["{{baseUrl}}"],
+							"path": ["webhooks", "github"]
+						},
+						"description": "Receives GitHub webhook events. Protected by HMAC-SHA256 signature verification. Only processes pull_request events with 'opened' or 'synchronize' actions."
+					}
+				},
+				{
+					"name": "Stripe Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Stripe-Signature",
+								"value": "YOUR_STRIPE_SIGNATURE",
+								"description": "Stripe webhook signature for event verification"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"customer.subscription.created\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"sub_123\",\n      \"customer\": \"cus_123\",\n      \"status\": \"active\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/webhooks/stripe",
+							"host": ["{{baseUrl}}"],
+							"path": ["webhooks", "stripe"]
+						},
+						"description": "Receives Stripe webhook events. Handles subscription.created, subscription.updated, and subscription.deleted events to upgrade/downgrade user plans."
+					}
+				}
+			]
+		}
+	]
+}

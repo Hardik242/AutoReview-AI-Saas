@@ -1,0 +1,56 @@
+services:
+  # PostgreSQL + pgvector
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: autoreview
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # API Server
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+    env_file: ./api/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/autoreview
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - db
+      - redis
+
+  # BullMQ Worker
+  worker:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.worker
+    env_file: ./api/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/autoreview
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - db
+      - redis
+
+  # Client (optional — for production preview)
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_API_URL: http://localhost:8000
+    ports:
+      - "3000:80"
+
+volumes:
+  pgdata:
